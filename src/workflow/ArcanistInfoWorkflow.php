@@ -70,6 +70,11 @@ EOTEXT
         'help' => pht(
           'Get the base commit.'),
       ),
+      'skip-dependencies' => array(
+        'supports' => array('git', 'hg'),
+        'help' => pht(
+          'Don\'t follow dependencies.'),
+      ),
       '*' => 'name',
     );
   }
@@ -153,6 +158,10 @@ EOTEXT
     return $this->getArgument('base-commit', false);
   }
 
+  private function shouldFollowDependencies() {
+    return !$this->getArgument('skip-dependencies', false);
+  }
+
   public function run() {
     $source = $this->getSource();
     $param = $this->getSourceParam();
@@ -201,7 +210,8 @@ EOTEXT
 
     if ($this->shouldGetBaseCommit()) {
       $exit_code = 1;
-      if ($this->getFirstDependency($bundle, $exit_code)) {
+      if ($this->shouldFollowDependencies() &&
+          $this->getFirstDependency($bundle, $exit_code)) {
         return $exit_code;
       }
 
@@ -267,6 +277,7 @@ EOTEXT
       if (!empty($revs)) {
         $base_args = array(
           '--base-commit',
+          '--skip-dependencies',
         );
 
         foreach ($revs as $phid => $diff_id) {
